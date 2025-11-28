@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block content %}
+<div style="text-align: center;">
+    <h3>Game 2048</h3>
+    <!-- Iframe trỏ tới file index.html do pygbag tạo ra trong static -->
+    <iframe id="gameFrame" src="/static/game_dist/index.html?v={% now 'U' %}" width="820" height="900" style="border:none;"></iframe>
+</div>
+
+<script>
+    // Hàm này sẽ được gọi từ bên trong iframe (game)
+    window.handleGameover = function(score, startTime, endTime, duration, gameMode) {
+        console.log("Game Over! Saving score...", score, gameMode);
+
+        fetch('/api/save_score/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}' // Django security token
+            },
+            body: JSON.stringify({
+                'score': score,
+                'start_time': startTime,
+                'end_time': endTime,
+                'duration': duration,
+                'game_mode': gameMode
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if(data.status === 'success') {
+                alert("Score saved successfully!");
+            } else {
+                alert("Error saving score.");
+            }
+        });
+    }
+</script>
+{% endblock %}
